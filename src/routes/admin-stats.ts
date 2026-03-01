@@ -1,0 +1,36 @@
+import { Router, Request, Response } from "express";
+import pool from "../db/pool";
+import { authenticate, requireAdmin } from "../middleware/auth";
+
+const router = Router();
+
+// GET /api/admin/stats — dashboard statistics
+router.get("/stats", authenticate, requireAdmin, async (_req: Request, res: Response) => {
+  try {
+    const [users, scholarships, jobs, pastPapers, timeSlots, sessions] = await Promise.all([
+      pool.query("SELECT COUNT(*) FROM users"),
+      pool.query("SELECT COUNT(*) FROM scholarships"),
+      pool.query("SELECT COUNT(*) FROM jobs"),
+      pool.query("SELECT COUNT(*) FROM past_papers"),
+      pool.query("SELECT COUNT(*) FROM time_slots WHERE is_active = true"),
+      pool.query("SELECT COUNT(*) FROM advice_sessions"),
+    ]);
+
+    const pendingSessions = await pool.query("SELECT COUNT(*) FROM advice_sessions WHERE status = 'Pending'");
+
+    res.json({
+      users: parseInt(users.rows[0].count, 10),
+      scholarships: parseInt(scholarships.rows[0].count, 10),
+      jobs: parseInt(jobs.rows[0].count, 10),
+      pastPapers: parseInt(pastPapers.rows[0].count, 10),
+      timeSlots: parseInt(timeSlots.rows[0].count, 10),
+      sessions: parseInt(sessions.rows[0].count, 10),
+      pendingSessions: parseInt(pendingSessions.rows[0].count, 10),
+    });
+  } catch (err) {
+    console.error("Admin stats error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+export default router;
