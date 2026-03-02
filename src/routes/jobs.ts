@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import pool from "../db/pool";
 import { authenticate, requireAdmin } from "../middleware/auth";
 import { validateJob } from "../middleware/validate";
+import cloudinary from "../lib/cloudinary";
 
 const router = Router();
 
@@ -103,10 +104,27 @@ router.put("/:id", authenticate, requireAdmin, validateJob, async (req: Request,
 // DELETE /api/jobs/:id — admin only
 router.delete("/:id", authenticate, requireAdmin, async (req: Request, res: Response) => {
   try {
-    const result = await pool.query("DELETE FROM jobs WHERE id = $1 RETURNING id", [req.params.id]);
+    const result = await pool.query("DELETE FROM jobs WHERE id = $1 RETURNING image_url, audio_url", [req.params.id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "Job not found" });
     }
+
+    // Clean up Cloudinary media
+    const { image_url, audio_url } = result.rows[0];
+    for (const [url, type] of [[image_url, "image"], [audio_url, "video"]] as const) {
+      if (url && url.includes("cloudinary")) {
+        try {
+          const parts = url.split("/upload/");
+          if (parts[1]) {
+            const publicId = parts[1].replace(/v\d+\//, "").replace(/\.[^/.]+$/, "");
+            await cloudinary.uploader.destroy(publicId, { resource_type: type });
+          }
+        } catch (e) {
+          console.error(`Cloudinary ${type} delete error:`, e);
+        }
+      }
+    }
+
     res.json({ message: "Job deleted" });
   } catch (err) {
     console.error("Delete job error:", err);
