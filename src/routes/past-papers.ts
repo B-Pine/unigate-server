@@ -98,9 +98,21 @@ router.get("/:id/download", async (req: Request, res: Response) => {
       }
     }
 
-    // If it's a Cloudinary URL, redirect to it
+    // Ensure filename has .pdf extension
+    const filename = original_filename && original_filename.endsWith(".pdf")
+      ? original_filename
+      : (original_filename ? original_filename + ".pdf" : "paper.pdf");
+
+    // If it's a Cloudinary URL, proxy the file with proper headers
     if (file_path.startsWith("http")) {
-      return res.redirect(file_path);
+      const upstream = await fetch(file_path);
+      if (!upstream.ok) return res.status(502).json({ message: "Failed to fetch file from storage" });
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      res.setHeader("Content-Type", "application/pdf");
+      const contentLength = upstream.headers.get("content-length");
+      if (contentLength) res.setHeader("Content-Length", contentLength);
+      const { Readable } = require("stream");
+      return Readable.fromWeb(upstream.body!).pipe(res);
     }
 
     const fullPath = path.resolve(file_path);
@@ -109,7 +121,7 @@ router.get("/:id/download", async (req: Request, res: Response) => {
       return res.status(404).json({ message: "File not found on server" });
     }
 
-    res.download(fullPath, original_filename);
+    res.download(fullPath, filename);
   } catch (err) {
     console.error("Download past paper error:", err);
     res.status(500).json({ message: "Internal server error" });
@@ -144,9 +156,21 @@ router.get("/:id/download-answer", authenticate, async (req: Request, res: Respo
       }
     }
 
-    // If it's a Cloudinary URL, redirect to it
+    // Ensure filename has .pdf extension
+    const answerFilename = answer_original_filename && answer_original_filename.endsWith(".pdf")
+      ? answer_original_filename
+      : (answer_original_filename ? answer_original_filename + ".pdf" : "answer.pdf");
+
+    // If it's a Cloudinary URL, proxy the file with proper headers
     if (answer_file_path.startsWith("http")) {
-      return res.redirect(answer_file_path);
+      const upstream = await fetch(answer_file_path);
+      if (!upstream.ok) return res.status(502).json({ message: "Failed to fetch file from storage" });
+      res.setHeader("Content-Disposition", `attachment; filename="${answerFilename}"`);
+      res.setHeader("Content-Type", "application/pdf");
+      const contentLength = upstream.headers.get("content-length");
+      if (contentLength) res.setHeader("Content-Length", contentLength);
+      const { Readable } = require("stream");
+      return Readable.fromWeb(upstream.body!).pipe(res);
     }
 
     const fullPath = path.resolve(answer_file_path);
@@ -154,7 +178,7 @@ router.get("/:id/download-answer", authenticate, async (req: Request, res: Respo
       return res.status(404).json({ message: "Answer file not found on server" });
     }
 
-    res.download(fullPath, answer_original_filename);
+    res.download(fullPath, answerFilename);
   } catch (err) {
     console.error("Download answer error:", err);
     res.status(500).json({ message: "Internal server error" });
