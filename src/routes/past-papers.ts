@@ -198,10 +198,7 @@ router.post(
     try {
       const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
       const questionFile = files?.["file"]?.[0];
-
-      if (!questionFile) {
-        return res.status(400).json({ message: "PDF file is required" });
-      }
+      const answerFile = files?.["answerFile"]?.[0];
 
       const { subject, year, level, category } = req.body;
       if (!subject || !year) {
@@ -209,7 +206,15 @@ router.post(
       }
 
       const paperCategory = category || "free";
-      const answerFile = files?.["answerFile"]?.[0];
+
+      // For free papers: question file required
+      // For paid papers: answer file required (question file optional since free section has them)
+      if (paperCategory === "free" && !questionFile) {
+        return res.status(400).json({ message: "PDF file is required for free papers" });
+      }
+      if (paperCategory === "paid" && !answerFile) {
+        return res.status(400).json({ message: "Premium paper file is required for paid papers" });
+      }
 
       const result = await pool.query(
         `INSERT INTO past_papers (subject, year, level, category, file_path, original_filename, answer_file_path, answer_original_filename, uploaded_by)
@@ -219,8 +224,8 @@ router.post(
           Number(year),
           level || "O-Level",
           paperCategory,
-          questionFile.path,
-          questionFile.originalname,
+          questionFile?.path || null,
+          questionFile?.originalname || null,
           answerFile?.path || null,
           answerFile?.originalname || null,
           req.user!.id,
