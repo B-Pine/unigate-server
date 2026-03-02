@@ -101,12 +101,12 @@ INSERT INTO jobs (company, title, description, qualifications, experience_level,
 
 -- Past papers (placeholder file paths)
 INSERT INTO past_papers (subject, year, level, file_path, original_filename, uploaded_by) VALUES
-('Mathematics', '2025', 'Senior 6', 'past-papers/math-2025.pdf', 'Mathematics_S6_2025.pdf', 1),
-('Physics', '2025', 'Senior 6', 'past-papers/physics-2025.pdf', 'Physics_S6_2025.pdf', 1),
-('Biology', '2024', 'Senior 6', 'past-papers/biology-2024.pdf', 'Biology_S6_2024.pdf', 1),
-('Chemistry', '2024', 'Senior 6', 'past-papers/chemistry-2024.pdf', 'Chemistry_S6_2024.pdf', 1),
-('Mathematics', '2024', 'Senior 6', 'past-papers/math-2024.pdf', 'Mathematics_S6_2024.pdf', 1),
-('English', '2025', 'Senior 6', 'past-papers/english-2025.pdf', 'English_S6_2025.pdf', 1);
+('Mathematics', '2025', 'A-Level', 'past-papers/math-2025.pdf', 'Mathematics_S6_2025.pdf', 1),
+('Physics', '2025', 'A-Level', 'past-papers/physics-2025.pdf', 'Physics_S6_2025.pdf', 1),
+('Biology', '2024', 'A-Level', 'past-papers/biology-2024.pdf', 'Biology_S6_2024.pdf', 1),
+('Chemistry', '2024', 'A-Level', 'past-papers/chemistry-2024.pdf', 'Chemistry_S6_2024.pdf', 1),
+('Mathematics', '2024', 'A-Level', 'past-papers/math-2024.pdf', 'Mathematics_S6_2024.pdf', 1),
+('English', '2025', 'A-Level', 'past-papers/english-2025.pdf', 'English_S6_2025.pdf', 1);
 
 -- Time Slots
 INSERT INTO time_slots (day_of_week, start_time, end_time, is_active) VALUES
