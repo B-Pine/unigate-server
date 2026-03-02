@@ -31,6 +31,9 @@ CREATE TABLE scholarships (
   deadline      DATE,
   form_link     VARCHAR(500),
   status        VARCHAR(20) NOT NULL DEFAULT 'Open' CHECK (status IN ('Open', 'Closed')),
+  image_url     VARCHAR(500),
+  audio_url     VARCHAR(500),
+  platform_link VARCHAR(500),
   created_by    INTEGER REFERENCES users(id),
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -47,6 +50,9 @@ CREATE TABLE jobs (
   deadline         DATE,
   form_link        VARCHAR(500),
   status           VARCHAR(20) NOT NULL DEFAULT 'Open' CHECK (status IN ('Open', 'Closed')),
+  image_url        VARCHAR(500),
+  audio_url        VARCHAR(500),
+  platform_link    VARCHAR(500),
   created_by       INTEGER REFERENCES users(id),
   created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
