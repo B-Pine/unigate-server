@@ -4,6 +4,7 @@ import fs from "fs";
 import pool from "../db/pool";
 import { authenticate, requireAdmin } from "../middleware/auth";
 import { uploadPaper } from "../middleware/upload";
+import cloudinary from "../lib/cloudinary";
 
 const router = Router();
 
@@ -97,6 +98,11 @@ router.get("/:id/download", async (req: Request, res: Response) => {
       }
     }
 
+    // If it's a Cloudinary URL, redirect to it
+    if (file_path.startsWith("http")) {
+      return res.redirect(file_path);
+    }
+
     const fullPath = path.resolve(file_path);
 
     if (!fs.existsSync(fullPath)) {
@@ -136,6 +142,11 @@ router.get("/:id/download-answer", authenticate, async (req: Request, res: Respo
       if (paymentResult.rows.length === 0) {
         return res.status(403).json({ message: "Payment required to download paid papers" });
       }
+    }
+
+    // If it's a Cloudinary URL, redirect to it
+    if (answer_file_path.startsWith("http")) {
+      return res.redirect(answer_file_path);
     }
 
     const fullPath = path.resolve(answer_file_path);
@@ -211,14 +222,25 @@ router.delete("/:id", authenticate, requireAdmin, async (req: Request, res: Resp
       return res.status(404).json({ message: "Past paper not found" });
     }
 
-    // Remove question file from disk
+    // Remove files (Cloudinary or local disk)
     const { file_path, answer_file_path } = result.rows[0];
-    if (file_path && fs.existsSync(file_path)) {
-      fs.unlinkSync(file_path);
-    }
-    // Remove answer file from disk
-    if (answer_file_path && fs.existsSync(answer_file_path)) {
-      fs.unlinkSync(answer_file_path);
+
+    for (const fp of [file_path, answer_file_path]) {
+      if (!fp) continue;
+      if (fp.startsWith("http") && fp.includes("cloudinary")) {
+        // Extract public_id from Cloudinary URL
+        try {
+          const parts = fp.split("/upload/");
+          if (parts[1]) {
+            const publicId = parts[1].replace(/\.[^/.]+$/, ""); // remove extension
+            await cloudinary.uploader.destroy(publicId, { resource_type: "raw" });
+          }
+        } catch (e) {
+          console.error("Cloudinary delete error:", e);
+        }
+      } else if (fs.existsSync(fp)) {
+        fs.unlinkSync(fp);
+      }
     }
 
     res.json({ message: "Past paper deleted" });

@@ -127,7 +127,9 @@ router.get("/", authenticate, requireAdmin, async (req: Request, res: Response) 
     const data = dataResult.rows.map((row: any) => ({
       ...row,
       screenshot_url: row.screenshot_path
-        ? `/uploads/payments/${row.screenshot_path.split(/[/\\]/).pop()}`
+        ? (row.screenshot_path.startsWith("http")
+          ? row.screenshot_path
+          : `/uploads/payments/${row.screenshot_path.split(/[/\\]/).pop()}`)
         : null,
     }));
 

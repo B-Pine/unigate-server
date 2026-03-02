@@ -9,7 +9,10 @@ router.post("/image", authenticate, requireAdmin, uploadImage.single("file"), (r
   if (!req.file) {
     return res.status(400).json({ message: "No image file provided" });
   }
-  const url = `/uploads/images/${req.file.filename}`;
+  // Cloudinary sets path to the full URL; local disk uses filename
+  const url = (req.file as any).path?.startsWith("http")
+    ? (req.file as any).path
+    : `/uploads/images/${req.file.filename}`;
   res.json({ url });
 });
 
@@ -18,7 +21,9 @@ router.post("/audio", authenticate, requireAdmin, uploadAudio.single("file"), (r
   if (!req.file) {
     return res.status(400).json({ message: "No audio file provided" });
   }
-  const url = `/uploads/audio/${req.file.filename}`;
+  const url = (req.file as any).path?.startsWith("http")
+    ? (req.file as any).path
+    : `/uploads/audio/${req.file.filename}`;
   res.json({ url });
 });
 
