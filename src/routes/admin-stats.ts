@@ -33,4 +33,35 @@ router.get("/stats", authenticate, requireAdmin, async (_req: Request, res: Resp
   }
 });
 
+// GET /api/admin/stats/user-growth — user signup counts over time
+router.get("/stats/user-growth", authenticate, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const period = req.query.period as string | undefined;
+    let trunc: string;
+    switch (period) {
+      case "week":
+        trunc = "week";
+        break;
+      case "month":
+        trunc = "month";
+        break;
+      default:
+        trunc = "day";
+    }
+
+    const result = await pool.query(
+      `SELECT date_trunc($1, created_at) AS period, COUNT(*)::int AS count
+       FROM users
+       GROUP BY 1
+       ORDER BY 1`,
+      [trunc]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("User growth error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 export default router;
