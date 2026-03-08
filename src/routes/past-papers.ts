@@ -257,11 +257,13 @@ router.delete("/:id", authenticate, requireAdmin, async (req: Request, res: Resp
     for (const fp of [file_path, answer_file_path]) {
       if (!fp) continue;
       if (fp.startsWith("http") && fp.includes("cloudinary")) {
-        // Extract public_id from Cloudinary URL
+        // Extract public_id from Cloudinary URL (strip version prefix like v1234567890/)
         try {
           const parts = fp.split("/upload/");
           if (parts[1]) {
-            const publicId = parts[1].replace(/\.[^/.]+$/, ""); // remove extension
+            const publicId = parts[1]
+              .replace(/^v\d+\//, "")   // strip version prefix
+              .replace(/\.[^/.]+$/, ""); // remove extension
             await cloudinary.uploader.destroy(publicId, { resource_type: "raw" });
           }
         } catch (e) {
