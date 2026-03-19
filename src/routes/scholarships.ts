@@ -69,11 +69,11 @@ router.get("/:id", async (req: Request, res: Response) => {
 // POST /api/scholarships — admin only
 router.post("/", authenticate, requireAdmin, validateScholarship, async (req: Request, res: Response) => {
   try {
-    const { title, university, country, description, requirements, deadline, form_link, status, image_url, audio_url, platform_link } = req.body;
+    const { title, university, country, description, requirements, deadline, form_link, status, image_url, audio_url, platform_link, youtube_url } = req.body;
     const result = await pool.query(
-      `INSERT INTO scholarships (title, university, country, description, requirements, deadline, form_link, status, image_url, audio_url, platform_link, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
-      [title, university, country, description || null, requirements || null, deadline || null, form_link || null, status || "Open", image_url || null, audio_url || null, platform_link || null, req.user!.id]
+      `INSERT INTO scholarships (title, university, country, description, requirements, deadline, form_link, status, image_url, audio_url, platform_link, youtube_url, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+      [title, university, country, description || null, requirements || null, deadline || null, form_link || null, status || "Open", image_url || null, audio_url || null, platform_link || null, youtube_url || null, req.user!.id]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -85,11 +85,11 @@ router.post("/", authenticate, requireAdmin, validateScholarship, async (req: Re
 // PUT /api/scholarships/:id — admin only
 router.put("/:id", authenticate, requireAdmin, validateScholarship, async (req: Request, res: Response) => {
   try {
-    const { title, university, country, description, requirements, deadline, form_link, status, image_url, audio_url, platform_link } = req.body;
+    const { title, university, country, description, requirements, deadline, form_link, status, image_url, audio_url, platform_link, youtube_url } = req.body;
     const result = await pool.query(
-      `UPDATE scholarships SET title=$1, university=$2, country=$3, description=$4, requirements=$5, deadline=$6, form_link=$7, status=$8, image_url=$9, audio_url=$10, platform_link=$11, updated_at=NOW()
-       WHERE id=$12 RETURNING *`,
-      [title, university, country, description || null, requirements || null, deadline || null, form_link || null, status || "Open", image_url || null, audio_url || null, platform_link || null, req.params.id]
+      `UPDATE scholarships SET title=$1, university=$2, country=$3, description=$4, requirements=$5, deadline=$6, form_link=$7, status=$8, image_url=$9, audio_url=$10, platform_link=$11, youtube_url=$12, updated_at=NOW()
+       WHERE id=$13 RETURNING *`,
+      [title, university, country, description || null, requirements || null, deadline || null, form_link || null, status || "Open", image_url || null, audio_url || null, platform_link || null, youtube_url || null, req.params.id]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "Scholarship not found" });

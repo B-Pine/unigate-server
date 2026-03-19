@@ -34,6 +34,7 @@ CREATE TABLE scholarships (
   image_url     VARCHAR(500),
   audio_url     VARCHAR(500),
   platform_link VARCHAR(500),
+  youtube_url   VARCHAR(500),
   created_by    INTEGER REFERENCES users(id),
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -53,6 +54,7 @@ CREATE TABLE jobs (
   image_url        VARCHAR(500),
   audio_url        VARCHAR(500),
   platform_link    VARCHAR(500),
+  youtube_url      VARCHAR(500),
   created_by       INTEGER REFERENCES users(id),
   created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()

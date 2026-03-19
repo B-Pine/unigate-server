@@ -69,11 +69,11 @@ router.get("/:id", async (req: Request, res: Response) => {
 // POST /api/jobs — admin only
 router.post("/", authenticate, requireAdmin, validateJob, async (req: Request, res: Response) => {
   try {
-    const { company, title, description, qualifications, experience_level, deadline, form_link, status, image_url, audio_url, platform_link } = req.body;
+    const { company, title, description, qualifications, experience_level, deadline, form_link, status, image_url, audio_url, platform_link, youtube_url } = req.body;
     const result = await pool.query(
-      `INSERT INTO jobs (company, title, description, qualifications, experience_level, deadline, form_link, status, image_url, audio_url, platform_link, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
-      [company, title, description || null, qualifications || null, experience_level || null, deadline || null, form_link || null, status || "Open", image_url || null, audio_url || null, platform_link || null, req.user!.id]
+      `INSERT INTO jobs (company, title, description, qualifications, experience_level, deadline, form_link, status, image_url, audio_url, platform_link, youtube_url, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+      [company, title, description || null, qualifications || null, experience_level || null, deadline || null, form_link || null, status || "Open", image_url || null, audio_url || null, platform_link || null, youtube_url || null, req.user!.id]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -85,11 +85,11 @@ router.post("/", authenticate, requireAdmin, validateJob, async (req: Request, r
 // PUT /api/jobs/:id — admin only
 router.put("/:id", authenticate, requireAdmin, validateJob, async (req: Request, res: Response) => {
   try {
-    const { company, title, description, qualifications, experience_level, deadline, form_link, status, image_url, audio_url, platform_link } = req.body;
+    const { company, title, description, qualifications, experience_level, deadline, form_link, status, image_url, audio_url, platform_link, youtube_url } = req.body;
     const result = await pool.query(
-      `UPDATE jobs SET company=$1, title=$2, description=$3, qualifications=$4, experience_level=$5, deadline=$6, form_link=$7, status=$8, image_url=$9, audio_url=$10, platform_link=$11, updated_at=NOW()
-       WHERE id=$12 RETURNING *`,
-      [company, title, description || null, qualifications || null, experience_level || null, deadline || null, form_link || null, status || "Open", image_url || null, audio_url || null, platform_link || null, req.params.id]
+      `UPDATE jobs SET company=$1, title=$2, description=$3, qualifications=$4, experience_level=$5, deadline=$6, form_link=$7, status=$8, image_url=$9, audio_url=$10, platform_link=$11, youtube_url=$12, updated_at=NOW()
+       WHERE id=$13 RETURNING *`,
+      [company, title, description || null, qualifications || null, experience_level || null, deadline || null, form_link || null, status || "Open", image_url || null, audio_url || null, platform_link || null, youtube_url || null, req.params.id]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "Job not found" });
