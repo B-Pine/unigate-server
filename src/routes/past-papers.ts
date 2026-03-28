@@ -8,6 +8,22 @@ import cloudinary from "../lib/cloudinary";
 
 const router = Router();
 
+// GET /api/past-papers/structure — returns which folders actually have papers
+router.get("/structure", async (_req: Request, res: Response) => {
+  try {
+    const result = await pool.query(
+      `SELECT category, level, subject, COUNT(*)::int AS count
+       FROM past_papers
+       GROUP BY category, level, subject
+       ORDER BY category, level, subject`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Past papers structure error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 // GET /api/past-papers — list with filtering
 router.get("/", async (req: Request, res: Response) => {
   try {
