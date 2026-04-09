@@ -35,6 +35,13 @@ export const validateJob = [
   handleValidation,
 ];
 
+export const validateAmatangazo = [
+  body("title").trim().notEmpty().withMessage("Title is required"),
+  body("organization").trim().notEmpty().withMessage("Organization is required"),
+  body("category").trim().notEmpty().withMessage("Category is required"),
+  handleValidation,
+];
+
 export const validateSession = [
   body("time_slot_id").isInt().withMessage("Time slot is required"),
   body("reason").trim().notEmpty().withMessage("Reason is required"),

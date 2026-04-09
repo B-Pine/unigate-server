@@ -2,10 +2,13 @@ DROP TABLE IF EXISTS payments CASCADE;
 DROP TABLE IF EXISTS bookmarks CASCADE;
 DROP TABLE IF EXISTS advice_sessions CASCADE;
 DROP TABLE IF EXISTS time_slots CASCADE;
+DROP TABLE IF EXISTS past_paper_links CASCADE;
+DROP TABLE IF EXISTS past_paper_subjects CASCADE;
 DROP TABLE IF EXISTS past_papers CASCADE;
 DROP TABLE IF EXISTS combination_faculty CASCADE;
 DROP TABLE IF EXISTS faculties CASCADE;
 DROP TABLE IF EXISTS combinations CASCADE;
+DROP TABLE IF EXISTS amatangazo CASCADE;
 DROP TABLE IF EXISTS jobs CASCADE;
 DROP TABLE IF EXISTS scholarships CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
@@ -60,6 +63,26 @@ CREATE TABLE jobs (
   updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Amatangazo (Announcements)
+CREATE TABLE amatangazo (
+  id            SERIAL PRIMARY KEY,
+  title         VARCHAR(255) NOT NULL,
+  organization  VARCHAR(255) NOT NULL,
+  category      VARCHAR(100) NOT NULL,
+  description   TEXT,
+  requirements  TEXT,
+  deadline      DATE,
+  form_link     VARCHAR(500),
+  status        VARCHAR(20) NOT NULL DEFAULT 'Open' CHECK (status IN ('Open', 'Closed')),
+  image_url     VARCHAR(500),
+  audio_url     VARCHAR(500),
+  platform_link VARCHAR(500),
+  youtube_url   VARCHAR(500),
+  created_by    INTEGER REFERENCES users(id),
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- Combinations
 CREATE TABLE combinations (
   id   SERIAL PRIMARY KEY,
@@ -96,6 +119,24 @@ CREATE TABLE past_papers (
   created_at               TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Past Paper External Links (admin-managed sources)
+CREATE TABLE past_paper_links (
+  id          SERIAL PRIMARY KEY,
+  title       VARCHAR(255) NOT NULL,
+  url         VARCHAR(500) NOT NULL,
+  description TEXT,
+  created_by  INTEGER REFERENCES users(id),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Past Paper Custom Subjects (admin can add beyond defaults)
+CREATE TABLE past_paper_subjects (
+  id    SERIAL PRIMARY KEY,
+  name  VARCHAR(100) NOT NULL,
+  level VARCHAR(50) NOT NULL CHECK (level IN ('Primary', 'O-Level', 'A-Level')),
+  UNIQUE (name, level)
+);
+
 -- Time Slots
 CREATE TABLE time_slots (
   id          SERIAL PRIMARY KEY,
@@ -121,7 +162,7 @@ CREATE TABLE advice_sessions (
 CREATE TABLE bookmarks (
   id         SERIAL PRIMARY KEY,
   user_id    INTEGER NOT NULL REFERENCES users(id),
-  item_type  VARCHAR(20) NOT NULL CHECK (item_type IN ('scholarship', 'job')),
+  item_type  VARCHAR(20) NOT NULL CHECK (item_type IN ('scholarship', 'job', 'amatangazo')),
   item_id    INTEGER NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE (user_id, item_type, item_id)

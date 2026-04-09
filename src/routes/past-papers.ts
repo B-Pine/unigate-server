@@ -24,6 +24,103 @@ router.get("/structure", async (_req: Request, res: Response) => {
   }
 });
 
+// ==========================================
+// External Links Management
+// ==========================================
+
+// GET /api/past-papers/links — public, list all external links
+router.get("/links", async (_req: Request, res: Response) => {
+  try {
+    const result = await pool.query("SELECT * FROM past_paper_links ORDER BY created_at DESC");
+    res.json(result.rows);
+  } catch (err) {
+    console.error("List past paper links error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// POST /api/past-papers/links — admin only
+router.post("/links", authenticate, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { title, url, description } = req.body;
+    if (!title || !url) {
+      return res.status(400).json({ message: "Title and URL are required" });
+    }
+    const result = await pool.query(
+      "INSERT INTO past_paper_links (title, url, description, created_by) VALUES ($1, $2, $3, $4) RETURNING *",
+      [title, url, description || null, req.user!.id]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error("Create past paper link error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// DELETE /api/past-papers/links/:id — admin only
+router.delete("/links/:id", authenticate, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query("DELETE FROM past_paper_links WHERE id = $1 RETURNING *", [req.params.id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Link not found" });
+    }
+    res.json({ message: "Link deleted" });
+  } catch (err) {
+    console.error("Delete past paper link error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// ==========================================
+// Custom Subjects Management
+// ==========================================
+
+// GET /api/past-papers/subjects — public, list all custom subjects
+router.get("/subjects", async (_req: Request, res: Response) => {
+  try {
+    const result = await pool.query("SELECT * FROM past_paper_subjects ORDER BY level, name");
+    res.json(result.rows);
+  } catch (err) {
+    console.error("List custom subjects error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// POST /api/past-papers/subjects — admin only
+router.post("/subjects", authenticate, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { name, level } = req.body;
+    if (!name || !level) {
+      return res.status(400).json({ message: "Name and level are required" });
+    }
+    const result = await pool.query(
+      "INSERT INTO past_paper_subjects (name, level) VALUES ($1, $2) RETURNING *",
+      [name.trim(), level]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err: any) {
+    if (err.code === "23505") {
+      return res.status(409).json({ message: "This subject already exists for the selected level" });
+    }
+    console.error("Create custom subject error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// DELETE /api/past-papers/subjects/:id — admin only
+router.delete("/subjects/:id", authenticate, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query("DELETE FROM past_paper_subjects WHERE id = $1 RETURNING *", [req.params.id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
+    res.json({ message: "Subject deleted" });
+  } catch (err) {
+    console.error("Delete custom subject error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 // GET /api/past-papers — list with filtering
 router.get("/", async (req: Request, res: Response) => {
   try {
@@ -41,7 +138,7 @@ router.get("/", async (req: Request, res: Response) => {
     }
     if (year) {
       where += ` AND year = $${paramIdx}`;
-      params.push(Number(year));
+      params.push(String(year));
       paramIdx++;
     }
     if (level) {
@@ -237,7 +334,7 @@ router.post(
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
         [
           subject,
-          Number(year),
+          String(year),
           level || "O-Level",
           paperCategory,
           questionFile?.path || null,

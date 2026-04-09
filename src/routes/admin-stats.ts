@@ -7,10 +7,11 @@ const router = Router();
 // GET /api/admin/stats — dashboard statistics
 router.get("/stats", authenticate, requireAdmin, async (_req: Request, res: Response) => {
   try {
-    const [users, scholarships, jobs, pastPapers, timeSlots, sessions] = await Promise.all([
+    const [users, scholarships, jobs, amatangazo, pastPapers, timeSlots, sessions] = await Promise.all([
       pool.query("SELECT COUNT(*) FROM users"),
       pool.query("SELECT COUNT(*) FROM scholarships"),
       pool.query("SELECT COUNT(*) FROM jobs"),
+      pool.query("SELECT COUNT(*) FROM amatangazo"),
       pool.query("SELECT COUNT(*) FROM past_papers"),
       pool.query("SELECT COUNT(*) FROM time_slots WHERE is_active = true"),
       pool.query("SELECT COUNT(*) FROM advice_sessions"),
@@ -22,6 +23,7 @@ router.get("/stats", authenticate, requireAdmin, async (_req: Request, res: Resp
       users: parseInt(users.rows[0].count, 10),
       scholarships: parseInt(scholarships.rows[0].count, 10),
       jobs: parseInt(jobs.rows[0].count, 10),
+      amatangazo: parseInt(amatangazo.rows[0].count, 10),
       pastPapers: parseInt(pastPapers.rows[0].count, 10),
       timeSlots: parseInt(timeSlots.rows[0].count, 10),
       sessions: parseInt(sessions.rows[0].count, 10),
